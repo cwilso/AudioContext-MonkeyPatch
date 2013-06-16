@@ -52,16 +52,16 @@ the time the audio context is instantiated. This approach also makes no
 reference to current parameter sets of other nodes so that it is robust to the
 api evolving to some extent -- it only depends on the gain node having a "gain"
 parameter.
+
+This code behaves differently than Chris Wilson's original intention
+stated above. It makes both old and new names available in the unprefixed 
+and prefixed context so that old and new code will run in old and new
+client implementations.
 */
 ;(function () {
     var GLOBAL = this;
-    if (GLOBAL.AudioContext) {
-        // Don't do anything. This client already supports
-        // an unprefixed AudioContext.
-        return;
-    }
 
-    GLOBAL.AudioContext = (function (AC) {
+    GLOBAL.AudioContext = GLOBAL.webkitAudioContext = (function (AC) {
         'use strict';
 
         if (!AC) {
@@ -81,9 +81,9 @@ parameter.
                 throw new Error('Invalid instantiation of AudioContext');
             }
 
-            ac.createGain = (ac.createGain || ac.createGainNode);
-            ac.createDelay = (ac.createDelay || ac.createDelayNode);
-            ac.createScriptProcessor = (ac.createScriptProcessor || ac.createJavaScriptNode);
+            ac.createGain = ac.createGainNode = (ac.createGain || ac.createGainNode);
+            ac.createDelay = ac.createDelayNode = (ac.createDelay || ac.createDelayNode);
+            ac.createScriptProcessor = ac.createJavaScriptNode = (ac.createScriptProcessor || ac.createJavaScriptNode);
 
             // Find out the AudioParam prototype object.
             // Some older implementations keep an additional empty
@@ -97,29 +97,37 @@ parameter.
                 AudioParam = AudioParamOld;
             }
 
-            AudioParam.setTargetAtTime = (AudioParam.setTargetAtTime || AudioParam.setTargetValueAtTime);
+            AudioParam.setTargetAtTime = AudioParam.setTargetValueAtTime = (AudioParam.setTargetAtTime || AudioParam.setTargetValueAtTime);
 
             // For BufferSource node, we need to also account for noteGrainOn.
             BufferSource = Object.getPrototypeOf(ac.createBufferSource());
-
-            if (!BufferSource.start) {
+            if (BufferSource.start) {
+                if (!BufferSource.noteOn) {
+                    BufferSource.noteOn = function noteOn(when) {
+                        return this.start(when); // Ignore other arguments.
+                    };
+                }
+                BufferSource.noteOff = BufferSource.stop;
+                if (!BufferSource.noteGrainOn) {
+                    BufferSource.noteGrainOn = function noteGrainOn(when, offset, duration) {
+                        return this.start(when, offset, duration);
+                    };
+                }
+            } else {
                 BufferSource.start = function start(when, offset, duration) {
-                    // Support only one or three argument form.
                     switch (arguments.length) {
                         case 1: return this.noteOn(when);
                         case 3: return this.noteGrainOn(when, offset, duration);
-                        default: throw new Error('Invalid number of arguments to BufferSource.start');
+                        default: throw new Error('Invalid arguments to BufferSource.start');
                     }
                 };
+                BufferSource.stop = BufferSource.noteOff;
             }
 
-            if (!BufferSource.stop) {
-               BufferSource.stop = BufferSource.noteOff;
-            }
 
             Oscillator = Object.getPrototypeOf(ac.createOscillator());
-            Oscillator.start = (Oscillator.start || Oscillator.noteOn);
-            Oscillator.stop = (Oscillator.stop || Oscillator.noteOff);
+            Oscillator.start = Oscillator.noteOn = (Oscillator.start || Oscillator.noteOn);
+            Oscillator.stop = Oscillator.noteOff = (Oscillator.stop || Oscillator.noteOff);
 
             return ac;
         };

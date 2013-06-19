@@ -7,8 +7,15 @@ and that use the new naming and proper bits of the Web Audio API (e.g.
 using BufferSourceNode.start() instead of BufferSourceNode.noteOn()), but may
 have to run on systems that only support the deprecated bits.
 
-This library should be harmless to include if the browser supports 
-unprefixed "AudioContext", and/or if it supports the new names.  
+Kumar: This version of the patch is bi-directional - i.e. it makes new
+names available in older implementations and vice versa, so that old
+code can keep running while new code works as well. It supports
+the following 4 use cases -
+
+1. Old code + New unprefixed implementation
+2. Old code + Old prefixed implementation with old names
+3. New code + New unprefixed implementation
+4. New code + Old prefixed implementation with old names
 
 The patches this library handles:
 ---------------------------------
@@ -33,3 +40,6 @@ BiquadFilterNode.type and OscillatorNode.type.
 
 You can copy the AudioContextMonkeyPatch.js into your project if you
 like, or include it as http://cwilso.github.com/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js.
+
+Kumar: Note that the aliasing is both ways - i.e. if only noteOn/noteOff is
+available, start() and stop() will be added to work using those.

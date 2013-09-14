@@ -92,7 +92,7 @@ BiquadFilterNode.type and OscillatorNode.type.
         }
       }
       if (!node.stop)
-        node.stop = node.noteoff;
+        node.stop = node.noteOff;
       fixSetTarget(node.playbackRate);
       return node;
     };

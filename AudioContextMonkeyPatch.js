@@ -13,16 +13,16 @@
    limitations under the License.
 */
 
-/* 
+/*
 
 This monkeypatch library is intended to be included in projects that are
-written to the proper AudioContext spec (instead of webkitAudioContext), 
-and that use the new naming and proper bits of the Web Audio API (e.g. 
+written to the proper AudioContext spec (instead of webkitAudioContext),
+and that use the new naming and proper bits of the Web Audio API (e.g.
 using BufferSourceNode.start() instead of BufferSourceNode.noteOn()), but may
 have to run on systems that only support the deprecated bits.
 
-This library should be harmless to include if the browser supports 
-unprefixed "AudioContext", and/or if it supports the new names.  
+This library should be harmless to include if the browser supports
+unprefixed "AudioContext", and/or if it supports the new names.
 
 The patches this library handles:
 if window.AudioContext is unsupported, it will be aliased to webkitAudioContext().
@@ -39,9 +39,9 @@ OscillatorNode.start() is aliased to noteOn()
 OscillatorNode.stop() is aliased to noteOff()
 AudioParam.setTargetAtTime() is aliased to setTargetValueAtTime()
 
-This library does NOT patch the enumerated type changes, as it is 
+This library does NOT patch the enumerated type changes, as it is
 recommended in the specification that implementations support both integer
-and string types for AudioPannerNode.panningModel, AudioPannerNode.distanceModel 
+and string types for AudioPannerNode.panningModel, AudioPannerNode.distanceModel
 BiquadFilterNode.type and OscillatorNode.type.
 
 */
@@ -52,36 +52,38 @@ BiquadFilterNode.type and OscillatorNode.type.
     if (!param)	// if NYI, just return
       return;
     if (!param.setTargetAtTime)
-      param.setTargetAtTime = param.setTargetValueAtTime; 
+      param.setTargetAtTime = param.setTargetValueAtTime;
   }
 
-  if (window.hasOwnProperty('webkitAudioContext') && 
+  if (window.hasOwnProperty('webkitAudioContext') &&
       !window.hasOwnProperty('AudioContext')) {
     window.AudioContext = webkitAudioContext;
 
-    if (!AudioContext.prototype.hasOwnProperty('createGain'))
-      AudioContext.prototype.createGain = AudioContext.prototype.createGainNode;
-    if (!AudioContext.prototype.hasOwnProperty('createDelay'))
-      AudioContext.prototype.createDelay = AudioContext.prototype.createDelayNode;
-    if (!AudioContext.prototype.hasOwnProperty('createScriptProcessor'))
-      AudioContext.prototype.createScriptProcessor = AudioContext.prototype.createJavaScriptNode;
+    var audioPrototype = AudioContext.prototype;
 
-    AudioContext.prototype.internal_createGain = AudioContext.prototype.createGain;
-    AudioContext.prototype.createGain = function() { 
+    if (!audioPrototype.hasOwnProperty('createGain'))
+      audioPrototype.createGain = audioPrototype.createGainNode;
+    if (!audioPrototype.hasOwnProperty('createDelay'))
+      audioPrototype.createDelay = audioPrototype.createDelayNode;
+    if (!audioPrototype.hasOwnProperty('createScriptProcessor'))
+      audioPrototype.createScriptProcessor = audioPrototype.createJavaScriptNode;
+
+    audioPrototype.internal_createGain = audioPrototype.createGain;
+    audioPrototype.createGain = function() {
       var node = this.internal_createGain();
       fixSetTarget(node.gain);
       return node;
     };
 
-    AudioContext.prototype.internal_createDelay = AudioContext.prototype.createDelay;
-    AudioContext.prototype.createDelay = function(maxDelayTime) { 
+    audioPrototype.internal_createDelay = audioPrototype.createDelay;
+    audioPrototype.createDelay = function(maxDelayTime) {
       var node = this.internal_createDelay(maxDelayTime);
       fixSetTarget(node.delayTime);
       return node;
     };
 
-    AudioContext.prototype.internal_createBufferSource = AudioContext.prototype.createBufferSource;
-    AudioContext.prototype.createBufferSource = function() { 
+    audioPrototype.internal_createBufferSource = audioPrototype.createBufferSource;
+    audioPrototype.createBufferSource = function() {
       var node = this.internal_createBufferSource();
       if (!node.start) {
         node.start = function ( when, offset, duration ) {
@@ -89,7 +91,7 @@ BiquadFilterNode.type and OscillatorNode.type.
             this.noteGrainOn( when, offset, duration );
           else
             this.noteOn( when );
-        }
+        };
       }
       if (!node.stop)
         node.stop = node.noteOff;
@@ -97,8 +99,8 @@ BiquadFilterNode.type and OscillatorNode.type.
       return node;
     };
 
-    AudioContext.prototype.internal_createDynamicsCompressor = AudioContext.prototype.createDynamicsCompressor;
-    AudioContext.prototype.createDynamicsCompressor = function() { 
+    audioPrototype.internal_createDynamicsCompressor = audioPrototype.createDynamicsCompressor;
+    audioPrototype.createDynamicsCompressor = function() {
       var node = this.internal_createDynamicsCompressor();
       fixSetTarget(node.threshold);
       fixSetTarget(node.knee);
@@ -109,8 +111,8 @@ BiquadFilterNode.type and OscillatorNode.type.
       return node;
     };
 
-    AudioContext.prototype.internal_createBiquadFilter = AudioContext.prototype.createBiquadFilter;
-    AudioContext.prototype.createBiquadFilter = function() { 
+    audioPrototype.internal_createBiquadFilter = audioPrototype.createBiquadFilter;
+    audioPrototype.createBiquadFilter = function() {
       var node = this.internal_createBiquadFilter();
       fixSetTarget(node.frequency);
       fixSetTarget(node.detune);
@@ -119,12 +121,12 @@ BiquadFilterNode.type and OscillatorNode.type.
       return node;
     };
 
-    if (AudioContext.prototype.hasOwnProperty( 'createOscillator' )) {
-      AudioContext.prototype.internal_createOscillator = AudioContext.prototype.createOscillator;
-      AudioContext.prototype.createOscillator = function() { 
+    if (audioPrototype.hasOwnProperty( 'createOscillator' )) {
+      audioPrototype.internal_createOscillator = audioPrototype.createOscillator;
+      audioPrototype.createOscillator = function() {
         var node = this.internal_createOscillator();
         if (!node.start)
-          node.start = node.noteOn; 
+          node.start = node.noteOn;
         if (!node.stop)
           node.stop = node.noteOff;
         fixSetTarget(node.frequency);

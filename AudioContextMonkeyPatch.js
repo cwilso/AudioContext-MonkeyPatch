@@ -75,7 +75,7 @@ BiquadFilterNode.type and OscillatorNode.type.
 
     AudioContext.prototype.internal_createDelay = AudioContext.prototype.createDelay;
     AudioContext.prototype.createDelay = function(maxDelayTime) { 
-      var node = this.internal_createDelay(maxDelayTime);
+      var node = maxDelayTime ? this.internal_createDelay(maxDelayTime) : this.internal_createDelay(maxDelayTime);
       fixSetTarget(node.delayTime);
       return node;
     };

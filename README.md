@@ -18,13 +18,15 @@ noteGrainOn(), depending on parameters.
 
 The following aliases only take effect if the new names are not already in place:
 
-AudioBufferSourceNode.stop() is aliased to noteOff()
-AudioContext.createGain() is aliased to createGainNode()
-AudioContext.createDelay() is aliased to createDelayNode()
-AudioContext.createScriptProcessor() is aliased to createJavaScriptNode()
-OscillatorNode.start() is aliased to noteOn()
-OscillatorNode.stop() is aliased to noteOff()
-AudioParam.setTargetAtTime() is aliased to setTargetValueAtTime()
+- AudioBufferSourceNode.stop() is aliased to noteOff()
+- AudioContext.createGain() is aliased to createGainNode()
+- AudioContext.createDelay() is aliased to createDelayNode()
+- AudioContext.createScriptProcessor() is aliased to createJavaScriptNode()
+- AudioContext.createPeriodicWave() is aliased to createWaveTable()
+- OscillatorNode.start() is aliased to noteOn()
+- OscillatorNode.stop() is aliased to noteOff()
+- AudioParam.setTargetAtTime() is aliased to setTargetValueAtTime()
+- OscillatorNode.setPeriodicWave() is aliased to setWaveTable()
 
 This library does NOT patch the enumerated type changes, as it is 
 recommended in the specification that implementations support both integer

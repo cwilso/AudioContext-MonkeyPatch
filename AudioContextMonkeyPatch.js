@@ -35,8 +35,10 @@ AudioBufferSourceNode.stop() is aliased to noteOff()
 AudioContext.createGain() is aliased to createGainNode()
 AudioContext.createDelay() is aliased to createDelayNode()
 AudioContext.createScriptProcessor() is aliased to createJavaScriptNode()
+AudioContext.createPeriodicWave() is aliased to createWaveTable()
 OscillatorNode.start() is aliased to noteOn()
 OscillatorNode.stop() is aliased to noteOff()
+OscillatorNode.setPeriodicWave() is aliased to setWaveTable()
 AudioParam.setTargetAtTime() is aliased to setTargetValueAtTime()
 
 This library does NOT patch the enumerated type changes, as it is 
@@ -65,6 +67,9 @@ BiquadFilterNode.type and OscillatorNode.type.
       AudioContext.prototype.createDelay = AudioContext.prototype.createDelayNode;
     if (!AudioContext.prototype.hasOwnProperty('createScriptProcessor'))
       AudioContext.prototype.createScriptProcessor = AudioContext.prototype.createJavaScriptNode;
+    if (!AudioContext.prototype.hasOwnProperty('createPeriodicWave'))
+      AudioContext.prototype.createPeriodicWave = AudioContext.prototype.createWaveTable;
+
 
     AudioContext.prototype.internal_createGain = AudioContext.prototype.createGain;
     AudioContext.prototype.createGain = function() { 
@@ -127,6 +132,8 @@ BiquadFilterNode.type and OscillatorNode.type.
           node.start = node.noteOn; 
         if (!node.stop)
           node.stop = node.noteOff;
+        if (!node.setPeriodicWave)
+          node.setPeriodicWave = node.setWaveTable;
         fixSetTarget(node.frequency);
         fixSetTarget(node.detune);
         return node;

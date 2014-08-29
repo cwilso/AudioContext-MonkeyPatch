@@ -98,8 +98,6 @@ BiquadFilterNode.type and OscillatorNode.type.
       }
       if (!node.stop)
         node.stop = node.noteOff;
-      if (!node.setPeriodicWave)
-        node.setPeriodicWave = node.setWaveTable;
       fixSetTarget(node.playbackRate);
       return node;
     };
@@ -134,6 +132,8 @@ BiquadFilterNode.type and OscillatorNode.type.
           node.start = node.noteOn; 
         if (!node.stop)
           node.stop = node.noteOff;
+        if (!node.setPeriodicWave)
+          node.setPeriodicWave = node.setWaveTable;
         fixSetTarget(node.frequency);
         fixSetTarget(node.detune);
         return node;

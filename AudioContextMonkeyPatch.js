@@ -91,13 +91,29 @@ BiquadFilterNode.type and OscillatorNode.type.
       if (!node.start) {
         node.start = function ( when, offset, duration ) {
           if ( offset || duration )
-            this.noteGrainOn( when, offset, duration );
+            this.noteGrainOn( when || 0, offset, duration );
           else
-            this.noteOn( when );
-        }
+            this.noteOn( when || 0 );
+        };
+      } else {
+        node.internal_start = node.start;
+        node.start = function( when, offset, duration ) {
+          if( typeof duration !== 'undefined' )
+            node.internal_start( when || 0, offset, duration );
+          else
+            node.internal_start( when || 0, offset );     
+        };
       }
-      if (!node.stop)
-        node.stop = node.noteOff;
+      if (!node.stop) {
+        node.stop = function ( when ) {
+          this.noteOff( when || 0 );
+        };
+      } else {
+        node.internal_stop = node.stop;
+        node.stop = function( when ) {
+          node.internal_stop( when || 0 );
+        };
+      }
       fixSetTarget(node.playbackRate);
       return node;
     };
@@ -128,10 +144,26 @@ BiquadFilterNode.type and OscillatorNode.type.
       AudioContext.prototype.internal_createOscillator = AudioContext.prototype.createOscillator;
       AudioContext.prototype.createOscillator = function() { 
         var node = this.internal_createOscillator();
-        if (!node.start)
-          node.start = node.noteOn; 
-        if (!node.stop)
-          node.stop = node.noteOff;
+        if (!node.start) {
+          node.start = function ( when ) {
+            this.noteOn( when || 0 );
+          };
+        } else {
+          node.internal_start = node.start;
+          node.start = function ( when ) {
+            node.internal_start( when || 0);
+          };
+        }
+        if (!node.stop) {
+          node.stop = function ( when ) {
+            this.noteOff( when || 0 );
+          };
+        } else {
+          node.internal_stop = node.stop;
+          node.stop = function( when ) {
+            node.internal_stop( when || 0 );
+          };
+        }
         if (!node.setPeriodicWave)
           node.setPeriodicWave = node.setWaveTable;
         fixSetTarget(node.frequency);

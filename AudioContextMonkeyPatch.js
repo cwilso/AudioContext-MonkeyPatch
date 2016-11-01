@@ -61,13 +61,13 @@ BiquadFilterNode.type and OscillatorNode.type.
       !window.hasOwnProperty('AudioContext')) {
     window.AudioContext = webkitAudioContext;
 
-    if (!AudioContext.prototype.hasOwnProperty('createGain'))
+    if (typeof AudioContext.prototype.createGain !== 'function')
       AudioContext.prototype.createGain = AudioContext.prototype.createGainNode;
-    if (!AudioContext.prototype.hasOwnProperty('createDelay'))
+    if (typeof AudioContext.prototype.createDelay !== 'function')
       AudioContext.prototype.createDelay = AudioContext.prototype.createDelayNode;
-    if (!AudioContext.prototype.hasOwnProperty('createScriptProcessor'))
+    if (typeof AudioContext.prototype.createScriptProcessor !== 'function')
       AudioContext.prototype.createScriptProcessor = AudioContext.prototype.createJavaScriptNode;
-    if (!AudioContext.prototype.hasOwnProperty('createPeriodicWave'))
+    if (typeof AudioContext.prototype.createPeriodicWave !== 'function')
       AudioContext.prototype.createPeriodicWave = AudioContext.prototype.createWaveTable;
 
 
@@ -140,7 +140,7 @@ BiquadFilterNode.type and OscillatorNode.type.
       return node;
     };
 
-    if (AudioContext.prototype.hasOwnProperty( 'createOscillator' )) {
+    if (typeof AudioContext.prototype.createOscillator !== 'function') {
       AudioContext.prototype.internal_createOscillator = AudioContext.prototype.createOscillator;
       AudioContext.prototype.createOscillator = function() {
         var node = this.internal_createOscillator();
